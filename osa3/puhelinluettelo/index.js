@@ -88,7 +88,6 @@ app.delete("/api/persons/:id", (req, res) => {
 })
 
 app.get("/info", (req, res) => {
-  console.log(req.headers)
   const requestTimeStamp = new Date().toUTCString()
   res.send(`
     <p>Phonebook has info for ${phonebook.length} people</p>
@@ -96,7 +95,7 @@ app.get("/info", (req, res) => {
   `)
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Express server running on port ${PORT}`)
 })

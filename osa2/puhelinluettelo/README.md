@@ -2,4 +2,5 @@
 
 ## Huom!
 
-src/services/personsService.js muutettu pyyntöjen url osan 3 tehtäviä varten
+- Kun sovellus ajetaan dev-ympäristössä, sovellus tekee pyynnöt proxyn kautta urliin: http://localhost:3001/persons
+- Prod-ympäristössä pyynnöt tehdään urliin: /api/persons (suhteellinen url)

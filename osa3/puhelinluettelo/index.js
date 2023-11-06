@@ -1,102 +1,108 @@
+require("dotenv").config()
 const express = require("express")
 const app = express()
 const morgan = require("morgan")
 const cors = require("cors")
+const Person = require("./models/person")
 
 // morgan config
-morgan.token("data", (req, res) => {
-  if(req.method === "POST") {
-    return JSON.stringify(req.body)
+morgan.token("data", (request, response) => {
+  if (request.method === "POST") {
+    return JSON.stringify(request.body)
   }
   return null
 })
 
 // Middleware
-app.use(morgan(":method :url :status :res[content-length] - :response-time ms :data"))
-app.use(cors())
 app.use(express.static("dist"))
 app.use(express.json())
+app.use(morgan(":method :url :status :res[content-length] - :response-time ms :data"))
+app.use(cors())
 
-let phonebook = [
-  {
-    id: 1,
-    name: "Ari Koodari",
-    number: "213-4567790"
-  },
-  {
-    id: 2,
-    name: "Maija Meikäläinen",
-    number: "456-7790294"
-  },
-  {
-    id: 3,
-    name: "Jari Iskuporakone",
-    number: "567-7903757"
-  },
-  {
-    id: 4,
-    name: "Oikea Ihminen",
-    number: "999-9123499"
-  }
-]
-
-app.get("/api/persons", (req, res) => {
-  res.json(phonebook)
+app.get("/api/persons", (request, response, next) => {
+  Person.find({})
+    .then(result => {
+      response.json(result)
+    })
+    .catch(error => next(error))
 })
 
-app.post("/api/persons", (req, res) => {
-  if (!req.body.name || !req.body.number) {
-    return res.status(400).json({
-      error: "content missing or incomplete"
-    })
-  }
+app.post("/api/persons", (request, response, next) => {
 
-  const names = phonebook.map(person => person.name)
-  if (names.includes(req.body.name)) {
-    return res.status(400).json({
-      error: "name must be unique"
-    })
-  }
+  const person = new Person({
+    "name": request.body.name,
+    "number": request.body.number
+  })
 
-  const newId = Math.floor(Math.random() * 100000)
+  person.save()
+    .then(saved => {
+      response.json(saved)
+    })
+    .catch(error => next(error))
+})
+
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
   const person = {
-    "id": newId,
-    "name": req.body.name,
-    "number": req.body.number
+    name: request.body.name,
+    number: request.body.number,
   }
 
-  phonebook = phonebook.concat(person)
-
-  res.json(person)
+  Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true, context: "query" })
+    .then(updated => {
+      if(updated === null) {
+        response.status(404).json({ error: "person already removed from server" })
+      } else {
+        response.json(updated)
+      }
+    })
+    .catch(error => next(error))
 })
 
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id)
-  const person = phonebook.find(person => person.id === id)
+app.delete("/api/persons/:id", (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
+})
 
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
+app.get("/info", (request, response, next) => {
+  Person.find({})
+    .then(result => {
+      const requestTimeStamp = new Date().toUTCString()
+      response.send(`
+        <p>Phonebook has info for ${result.length} people</p>
+        <p>${requestTimeStamp}</p>
+      `)
+    })
+    .catch(error => next(error))
+})
+
+const errorMiddleware = (error, request, response, next) => {
+  console.error(error.message)
+  if (error.name === "CastError") {
+    return response.status(400).json({ error: "malformatted id" })
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message })
   }
-})
+  next(error)
+}
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id)
-  phonebook = phonebook.filter(person => person.id !== id)
+app.use(errorMiddleware)
 
-  res.status(204).end()
-})
-
-app.get("/info", (req, res) => {
-  const requestTimeStamp = new Date().toUTCString()
-  res.send(`
-    <p>Phonebook has info for ${phonebook.length} people</p>
-    <p>${requestTimeStamp}</p>
-  `)
-})
-
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Express server running on port ${PORT}`)
 })

@@ -37,7 +37,11 @@ const App = () => {
             }, 5000)
           })
           .catch(error => {
-            setErrorMessage(`${newPerson.name} has already been removed from the server`)
+            if (error.response.status === 404) {
+              setErrorMessage(`${newPerson.name} has already been removed from the server`)
+            } else {
+              setErrorMessage(`Validation failed: ${error.response.data.error}`)
+            }
             setTimeout(() => {
               setErrorMessage(null)
             }, 5000)
@@ -52,6 +56,12 @@ const App = () => {
           setSuccessMessage(`Added ${addedPerson.name}`)
           setTimeout(() => {
             setSuccessMessage(null)
+          }, 5000)
+        })
+        .catch(error => {
+          setErrorMessage(`Validation failed: ${error.response.data.error}`)
+          setTimeout(() => {
+            setErrorMessage(null)
           }, 5000)
         })
     }

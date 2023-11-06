@@ -53,7 +53,7 @@ app.get("/api/persons/:id", (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.put('/api/persons/:id', (request, response, next) => {
+app.put("/api/persons/:id", (request, response, next) => {
   const person = {
     name: request.body.name,
     number: request.body.number,

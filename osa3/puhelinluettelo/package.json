@@ -8,7 +8,8 @@
     "dev": "nodemon index.js",
     "start": "node index.js",
     "build:ui": "rm -rf dist && cd ../../osa2/puhelinluettelo && npm run build && cp -r dist ../../osa3/puhelinluettelo",
-    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push",
+    "lint": "eslint ."
   },
   "author": "Roope Kipinä",
   "license": "ISC",
@@ -20,6 +21,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^8.53.0",
     "nodemon": "^3.0.1"
   }
 }

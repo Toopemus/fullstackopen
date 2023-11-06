@@ -1,8 +1,8 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose")
 
 const url = process.env.MONGODB_URI
 
-mongoose.set('strictQuery', false)
+mongoose.set("strictQuery", false)
 
 console.log(`connecting to ${url}`)
 mongoose.connect(url)
@@ -39,4 +39,4 @@ personSchema.set("toJSON", {
   }
 })
 
-module.exports = mongoose.model('Person', personSchema)
+module.exports = mongoose.model("Person", personSchema)
